@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AstraVale — Astrophotography Workshop</title>
+  <title>AstraVale | Astrophotography Workshop</title>
   <link rel="icon" type="image/png" href="images/AstraVale_Black_BG-removebg-preview.png">
   
   <!-- Google Fonts -->
@@ -16,18 +16,49 @@
 </head>
 <body>
 
-  <!-- Loading Screen -->
+  <!-- Loading Screen / Optical Calibration HUD -->
   <div id="loading-screen">
-    <div class="loading-orbit-ring ring-1"><div class="orbit-dot dot-1"></div><div class="orbit-dot dot-2"></div></div>
-    <div class="loading-orbit-ring ring-2"><div class="orbit-dot dot-1"></div><div class="orbit-dot dot-2"></div><div class="orbit-dot dot-3"></div></div>
-    <div class="loading-orbit-ring ring-3"><div class="orbit-dot dot-1"></div><div class="orbit-dot dot-2"></div></div>
-    <div class="loading-logo">
-      <img src="images/AstraVale_Black_BG-removebg-preview.png" alt="AstraVale Logo" />
+    <div class="optics-hud">
+      <!-- Reticle Axes & Frame -->
+      <div class="reticle-axis axis-x"></div>
+      <div class="reticle-axis axis-y"></div>
+      <div class="reticle-corner corner-tl"></div>
+      <div class="reticle-corner corner-tr"></div>
+      <div class="reticle-corner corner-bl"></div>
+      <div class="reticle-corner corner-br"></div>
+
+      <!-- Concentric Calibration Rings -->
+      <div class="optics-ring ring-outer">
+        <div class="ring-tick tick-top"></div>
+        <div class="ring-tick tick-bottom"></div>
+        <div class="ring-tick tick-left"></div>
+        <div class="ring-tick tick-right"></div>
+      </div>
+      <div class="optics-ring ring-mid"></div>
+      <div class="optics-ring ring-focus"></div>
+
+      <!-- Center Logo & Lens Aperture -->
+      <div class="optics-core">
+        <div class="optics-aperture-glow"></div>
+        <img class="optics-logo" src="images/AstraVale_Black_BG-removebg-preview.png" alt="AstraVale Logo" />
+      </div>
+
+      <!-- Telemetry Readouts -->
+      <div class="telemetry-badge telemetry-top">SYSTEM OPTICS | FOCAL RATIO f/2.8</div>
+      <div class="telemetry-badge telemetry-bottom">COORDINATES: RA 05h 35m | DEC -05° 23'</div>
     </div>
-    <div class="loading-bar-track">
-      <div class="loading-bar-fill"></div>
+
+    <!-- Light Futuristic Progress Track -->
+    <div class="loading-progress-container">
+      <div class="loading-status-line">
+        <span class="loading-pulse-indicator"></span>
+        <span class="loading-label" id="loading-status-text">CALIBRATING OPTICS</span>
+        <span class="loading-percentage" id="loading-pct">0%</span>
+      </div>
+      <div class="loading-bar-track">
+        <div class="loading-bar-fill"></div>
+      </div>
     </div>
-    <div class="loading-text">Calibrating Optics</div>
   </div>
 
   <!-- Three.js Canvas -->

@@ -1,5 +1,5 @@
 /* ============================================================
-   AstraVale — Cinematic Star Trails Background
+   AstraVale | Cinematic Star Trails Background
    Professional long-exposure polar rotation effect
    ============================================================ */
 (function () {
@@ -9,12 +9,14 @@
   /* ── Renderer ── */
   const renderer = new THREE.WebGLRenderer({
     canvas,
-    antialias: true,
+    antialias: false,
     alpha: true,
     powerPreference: 'high-performance',
+    stencil: false,
+    depth: false,
   });
   renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
   renderer.setClearColor(0x000000, 0);
   renderer.sortObjects = false;
 
@@ -34,11 +36,11 @@
   /* ══════════════════════════════════════════════════════════
      1. STAR TRAILS  (long-exposure arc segments)
      ══════════════════════════════════════════════════════════ */
-  const TRAIL_COUNT      = 2800;
-  const SEGS_PER_TRAIL   = 30;   // segments per trail (points = SEGS+1)
+  const TRAIL_COUNT      = 950;
+  const SEGS_PER_TRAIL   = 16;   // segments per trail (points = SEGS+1)
 
   const palette = [
-    new THREE.Color(0xffffff),   // pure white  – most common
+    new THREE.Color(0xffffff),   // pure white | most common
     new THREE.Color(0xe8f0ff),   // blue-white
     new THREE.Color(0xffd0a0),   // warm orange (K-type star)
     new THREE.Color(0x3b82f6),   // accent blue
@@ -128,7 +130,7 @@
   /* ══════════════════════════════════════════════════════════
      2. POINT STARS  (stationary pin-prick stars for depth)
      ══════════════════════════════════════════════════════════ */
-  const STAR_COUNT   = 1800;
+  const STAR_COUNT   = 900;
   const starPos      = new Float32Array(STAR_COUNT * 3);
   const starCol      = new Float32Array(STAR_COUNT * 3);
   const starSize     = new Float32Array(STAR_COUNT);
@@ -307,15 +309,23 @@
   nebs.forEach(n => staticGroup.add(n.mesh));
 
   /* ══════════════════════════════════════════════════════════
-     5. MOUSE PARALLAX
+     5. MOUSE PARALLAX & SCROLL OPTIMIZATION
      ══════════════════════════════════════════════════════════ */
   const mouse  = { x: 0, y: 0 };
   const smooth = { x: 0, y: 0 };
+  let isScrolling = false;
+  let scrollTimeout = null;
 
   window.addEventListener('mousemove', e => {
     mouse.x = (e.clientX / window.innerWidth  - 0.5) * 2;
     mouse.y = (e.clientY / window.innerHeight - 0.5) * 2;
-  });
+  }, { passive: true });
+
+  window.addEventListener('scroll', () => {
+    isScrolling = true;
+    if (scrollTimeout) clearTimeout(scrollTimeout);
+    scrollTimeout = setTimeout(() => { isScrolling = false; }, 100);
+  }, { passive: true });
 
   /* ══════════════════════════════════════════════════════════
      6. ANIMATION LOOP
@@ -327,11 +337,12 @@
     rafId = requestAnimationFrame(animate);
     const t = clock.getElapsedTime();
 
-    // Smooth mouse
-    smooth.x += (mouse.x - smooth.x) * 0.028;
-    smooth.y += (mouse.y - smooth.y) * 0.028;
+    // Smooth mouse (less aggressive during fast scroll to save cycles)
+    const factor = isScrolling ? 0.015 : 0.028;
+    smooth.x += (mouse.x - smooth.x) * factor;
+    smooth.y += (mouse.y - smooth.y) * factor;
 
-    // Trails rotate slowly — realistic star-trail feel
+    // Trails rotate slowly | realistic star-trail feel
     skyGroup.rotation.z = t * 0.0048;
 
     // Gentle parallax tilt
@@ -352,12 +363,16 @@
 
   animate();
 
-  /* ── Resize ── */
+  /* ── Resize with debounce ── */
+  let resizeTimer;
   window.addEventListener('resize', () => {
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
-  });
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    }, 150);
+  }, { passive: true });
 
   /* ── Visibility: pause when tab hidden ── */
   document.addEventListener('visibilitychange', () => {
